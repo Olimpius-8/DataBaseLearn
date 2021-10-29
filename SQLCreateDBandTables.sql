@@ -57,7 +57,7 @@ CREATE TABLE ContactBook(
 IDOwner int FOREIGN KEY REFERENCES Users(ID) NOT NULL,			--ID владельца книги
 IDContact int FOREIGN KEY REFERENCES Users(ID) NOT NULL,		--ID контакта
 BlacklistStatus BIT default 0 NOT NULL,							--Статус в чёрном списке
-Primary key (IDOwner, IDContact))
+Constraint IDBook Primary key (IDOwner, IDContact))
 
 -- Конференция Е5 
 CREATE TABLE Conference(										

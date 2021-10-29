@@ -17,7 +17,7 @@ INSERT INTO StopWords(Word, priority) VALUES
 ('Похитить',			2),
 ('Уничтожить',			1),
 ('Взломать',			2),
-('Дезинтегрировать',	2),
+('Устранить',			2),
 ('Не по телефону',		4);
 
 INSERT INTO ComradeMajor(Name, Lastname, Surname) VALUES
@@ -47,6 +47,7 @@ INSERT INTO Dialog(IDFirst, IDSecond, TimeCreate, LastMessage, LastAttachment) V
 INSERT INTO Dictionary(IDWord,IDMajor) VALUES
 (1,1),
 (1,2),
+(5,1),
 (2,3),
 (2,2),
 (2,4),
@@ -59,14 +60,18 @@ INSERT INTO ContactBook(IDOwner, IDContact, BlacklistStatus) VALUES
 (1,3,0),
 (1,4,1),
 (1,5,0),
-(2,1,0),
+(2,1,1),
 (2,3,1),
 (2,4,0)
+
+--select * from contactbook 
+
+--delete from ContactBook
 
 SET IDENTITY_INSERT TextMessage OFF
 go
 INSERT INTO TextMessage VALUES
-(1,'Надо взорвать базу', CURRENT_TIMESTAMP, 1,CURRENT_TIMESTAMP,0,NULL,0,0,NULL),
+(1,'Надо найти базу', CURRENT_TIMESTAMP, 1,CURRENT_TIMESTAMP,0,NULL,0,0,NULL),
 (2,'Необходимо устранить конкурентов', CURRENT_TIMESTAMP+1,1, CURRENT_TIMESTAMP,1,CURRENT_TIMESTAMP+0.5,1,0,NULL),
 (3,'Надо найти на карте оставленные документы и взорвать взорвать', CURRENT_TIMESTAMP+2, 0, NULL, 0,NULL,0,0,NULL)
   
@@ -77,31 +82,42 @@ INSERT INTO TextMessage VALUES
   */
   --select * from textmessage
 
+Select IDMessage, 'Слово' = StopWords.Word, IDMajor, CountInMessage 
+from Coincedence
+--JOIN Dictionary ON Dictionary.IDWord = Coincedence.IDWord
+JOIN StopWords ON Coincedence.IDWord = StopWords.Id
 
-  INSERT INTO MessagesDialog VALUES
+INSERT INTO MessagesDialog VALUES
 (1,1),
 (1,2),
 (2,3)
 
+select * from MessagesDialog
 
-Select * from Coincedence
+
+--выводит слова дежурного товарица майора
+SELECT  
+ComradeMajor.ID,
+'Майор' = (ComradeMajor.Name +' '+ ComradeMajor.Lastname +' '+ ComradeMajor.Surname),
+'Стоп-слово' = StopWords.Word,
+'Приоритет' = StopWords.Priority
+FROM Dictionary 
+JOIN StopWords
+ON Dictionary.IDWord = StopWords.ID
+JOIN ComradeMajor
+ON ComradeMajor.ID = Dictionary.IDMajor
+JOIN TimeTable
+ON TimeTable.IDMajor = ComradeMajor.ID
+where TimeTable.WorkDay = Convert(Date, Current_TIMESTAMP) AND  Convert (Time, CURRENT_TIMESTAMP) BETWEEN TimeTable.TimeStart AND Timetable.TimeEnd 
+--
+
+
 
 SELECT * FROM Users
 
 SELECT * FROM StopWords
 
 SELECT * FROM Timetable
-
---выводит слова конкретного товарица майора
-SELECT  
-'Майор' = (ComradeMajor.Name +' '+ ComradeMajor.Lastname +' '+ ComradeMajor.Surname),
-'Стоп-слово' = StopWords.Word,
-'Приоритет' = StopWords.Priority
-FROM Dictionary
-JOIN StopWords
-ON Dictionary.IDWord = StopWords.ID
-JOIN ComradeMajor
-ON ComradeMajor.ID = Dictionary.IDMajor 
 
 --выводит контактную книгу
 SELECT 
@@ -117,15 +133,3 @@ SELECT * FROM Timetable
 
 select * from TextMessage
 
---словать дежурного майора
-SELECT ComradeMajor.ID, StopWords.Word 
-FROM ComradeMajor
-JOIN TimeTable ON Timetable.IDMajor = ComradeMajor.ID
-JOIN Dictionary ON ComradeMajor.ID = Dictionary.IDMajor
-JOIN StopWords ON StopWords.ID = Dictionary.IDWord
-Where CONVERT(Date, CURRENT_TIMESTAMP) = TimeTable.WorkDay AND
-CONVERT(TIME, CURRENT_TIMESTAMP) BETWEEN TimeStart AND TimeEnd
-
- 
-
-use master
