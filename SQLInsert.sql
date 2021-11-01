@@ -2,7 +2,9 @@ IF DB_ID('Pelegram') IS NOT NULL
 BEGIN
     use Pelegram
 END
+go
 
+--SELECT * FROM Users
 INSERT INTO Users(Nickname,PhoneNumber,Name, Lastname, Surname, LastSession, EncriptionKey) VALUES
 ('Abraksas',	'77777777777',	'Абраксас',	'Кужугетов',	'Арсланович',	Current_TimeStamp,	'df8s96sdg76d'	),
 ('ЗЫЗЫА',		'78956423512',	'Тимофей',	'Покрышкин',	'Михайлович',	Current_TimeStamp,	'k234jhKJh342'	),
@@ -11,7 +13,7 @@ INSERT INTO Users(Nickname,PhoneNumber,Name, Lastname, Surname, LastSession, Enc
 ('c',			'87907987986',	'Анатолий',	'Силиванов',	'Артурович',	Current_TimeStamp,	'D)(UdsgG*(&s9'	);
 
 go
-
+--select * from stopwords
 INSERT INTO StopWords(Word, priority) VALUES
 ('Взорвать',			2),
 ('Похитить',			2),
@@ -19,7 +21,7 @@ INSERT INTO StopWords(Word, priority) VALUES
 ('Взломать',			2),
 ('Устранить',			2),
 ('Не по телефону',		4);
-
+--select * from comrademajor
 INSERT INTO ComradeMajor(Name, Lastname, Surname) VALUES
 ('Антон','Бондаренко','Степанович'),
 ('Олег','Демидов','Александрович'),
@@ -29,9 +31,9 @@ INSERT INTO ComradeMajor(Name, Lastname, Surname) VALUES
 ('Владислав','Никифоров','Артёмович');
 
 SET IDENTITY_INSERT Timetable OFF		--отключаем ручной ввод ID
-
+--select * from  timetable 
 INSERT INTO Timetable(IDMajor, WorkDay, TimeStart, TimeEnd) VALUES
-(1,GETDATE(),'13:30','21:30'),
+(1,GETDATE(),'3:30','21:30'),
 (2,GETDATE()+1,'08:30','17:30'),
 (5,GETDATE()+3,'07:30','15:30'),
 (4,GETDATE()+5,'05:30','15:30');
@@ -40,9 +42,11 @@ SET IDENTITY_INSERT Dialog OFF
 
 INSERT INTO Dialog(IDFirst, IDSecond, TimeCreate, LastMessage, LastAttachment) VALUES
 (1,2,CURRENT_TIMESTAMP,NULL,NULL),
-(3,4,CURRENT_TIMESTAMP,NULL,NULL)
+(3,4,CURRENT_TIMESTAMP,NULL,NULL),
+(2,3,CURRENT_TIMESTAMP,NULL,NULL),
+(1,4,CURRENT_TIMESTAMP,NULL,NULL)
 
-
+--select * from dialog
 
 INSERT INTO Dictionary(IDWord,IDMajor) VALUES
 (1,1),
@@ -54,7 +58,7 @@ INSERT INTO Dictionary(IDWord,IDMajor) VALUES
 (3,2),
 (3,4),
 (3,5);
-
+--select * from dictionary
 INSERT INTO ContactBook(IDOwner, IDContact, BlacklistStatus) VALUES
 (1,2,0),
 (1,3,0),
@@ -67,32 +71,42 @@ INSERT INTO ContactBook(IDOwner, IDContact, BlacklistStatus) VALUES
 --select * from contactbook 
 
 --delete from ContactBook
-
+go
 SET IDENTITY_INSERT TextMessage OFF
+
 go
 INSERT INTO TextMessage VALUES
 (1,'Надо найти базу', CURRENT_TIMESTAMP, 1,CURRENT_TIMESTAMP,0,NULL,0,0,NULL),
 (2,'Необходимо устранить конкурентов', CURRENT_TIMESTAMP+1,1, CURRENT_TIMESTAMP,1,CURRENT_TIMESTAMP+0.5,1,0,NULL),
-(3,'Надо найти на карте оставленные документы и взорвать взорвать', CURRENT_TIMESTAMP+2, 0, NULL, 0,NULL,0,0,NULL)
+(3,'Надо найти на карте оставленные документы и взорвать взорвать их', CURRENT_TIMESTAMP+2, 0, NULL, 0,NULL,0,0,NULL),
+(2,'Необходимо обеспечить непрерывной поток данных',CURRENT_TIMESTAMP+1, 0, NULL, 0,NULL,0,0,NULL)
   
   /*
   delete from messagesDialog
   delete from coincedence
+  disable trigger MessageDelete on TextMessage
   delete from TextMessage
   */
   --select * from textmessage
-
+  /*delete from TextMessage where ID = 3
+  update TextMessage set Deleted = 0 where TextMessage.ID = 3*/
+  go
 Select IDMessage, 'Слово' = StopWords.Word, IDMajor, CountInMessage 
 from Coincedence
 --JOIN Dictionary ON Dictionary.IDWord = Coincedence.IDWord
 JOIN StopWords ON Coincedence.IDWord = StopWords.Id
 
+
 INSERT INTO MessagesDialog VALUES
 (1,1),
 (1,2),
+(1,4),
 (2,3)
-
+/*
+delete from MessagesDialog
 select * from MessagesDialog
+*/
+
 
 
 --выводит слова дежурного товарица майора
@@ -109,7 +123,6 @@ ON ComradeMajor.ID = Dictionary.IDMajor
 JOIN TimeTable
 ON TimeTable.IDMajor = ComradeMajor.ID
 where TimeTable.WorkDay = Convert(Date, Current_TIMESTAMP) AND  Convert (Time, CURRENT_TIMESTAMP) BETWEEN TimeTable.TimeStart AND Timetable.TimeEnd 
---
 
 
 
@@ -121,15 +134,15 @@ SELECT * FROM Timetable
 
 --выводит контактную книгу
 SELECT 
+Users.ID,
 'Владелец'=(Users.Name +' '+Users.Lastname+' '+Users.Surname) ,
 'Его номер' = Users.PhoneNumber, 
+Users_2.ID,
 'Абонент'=(Users_2.Name +' '+Users_2.Lastname+' '+Users_2.Surname),
-'Номер' = Users_2.PhoneNumber
+'Номер' = Users_2.PhoneNumber,
+BlacklistStatus
 FROM ContactBook
 JOIN Users				ON ContactBook.IDOwner = Users.ID
 JOIN Users AS Users_2 ON ContactBook.IDContact = Users_2.ID
 
-SELECT * FROM Timetable
-
-select * from TextMessage
-
+--*/

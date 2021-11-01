@@ -1,6 +1,127 @@
 USE Pelegram
 go
+
+--1: проверка на нахождение в чёрном списке
+Create trigger Blacklistdialog
+ON MessagesDialog
+instead of insert
+as
+declare @iddialog int,
+@idmessage int,
+@idowner int,			--владелец сообщения
+@idsend int,			--второй участник диалога
+@banned bit,
+@check int				--проверка, является ли владелец сообщения первым участником
+
+Declare DMsg_Cursor CURSOR
+for select
+inserted.IDDialog, INSERTED.IDMessage
+FROM inserted
+OPEN DMsg_Cursor
+FETCH NEXT FROM DMsg_Cursor into @iddialog, @idmessage
+print @@FETCH_status
+while @@FETCH_STATUS = 0
+begin
+		
+		set @idowner = (select IDOwner from TextMessage where ID = @idmessage)
+		set @check = (select IDFirst from Dialog where ID = @iddialog AND IDFirst = @idowner)
+		
+		if (@check !=0)	--если владелец в первом поле 
+			set @idsend = (select IDSecond from Dialog where ID = @iddialog AND IDFirst = @idowner)--берем из первого
+		else
+			set @idsend = (select IDFirst from Dialog where ID = @iddialog AND IDSecond = @idowner)--иначе из второго
+
+		/*
+		print 'idmessage'+cast(@idmessage as varchar)
+		print 'idowner'+cast(@idowner as varchar)
+		print 'idsend'+cast(@idsend as varchar)
+		*/
+		
+		if exists (select BlacklistStatus from ContactBook where IDOwner = @idsend and IDContact = @idowner)
+		begin
+			set @banned  = (select BlacklistStatus from ContactBook
+			where IDOwner = @idsend and IDContact = @idowner)
+		end
+		else
+			set @banned=0
+		--print 'banned'+cast(@banned as varchar)
+		if (@banned = 0)
+		begin
+			Insert into MessagesDialog values
+			(@iddialog, @idmessage)
+		end
+		else
+		begin
+			delete from TextMessage 
+			where ID = @idmessage
+		end
+				
+		FETCH NEXT FROM DMsg_Cursor into @iddialog, @idmessage
+end
+close Dmsg_cursor
+deallocate Dmsg_cursor
+
+go
+
+--2: проверка на разрешения в конференции - проверить!!!
+Create trigger PermissionsConference
+ON MessagesConference 
+instead of insert
+as
+declare @idconference int,
+@idmessage int,
+@idowner int,			--владелец сообщения
+@chatban int,			--второй участник диалога
+@attachban bit,
+@check int				--проверка, является ли владелец сообщения первым участником
+
+Declare CMsg_Cursor CURSOR
+for select
+inserted.IDConference, INSERTED.IDTextMessage
+FROM inserted
+OPEN CMsg_Cursor
+FETCH NEXT FROM Cmsg_Cursor into @iddialog, @idmessage
+print @@FETCH_status
+while @@FETCH_STATUS = 0
+begin
+		set @idowner = (select IDOwner from TextMessage where ID = @idmessage)
+		--проверка на существование записи в таблице
+		if exists (select PermissionChat from ListUsers 
+		where IDConference = @idconference AND IDUser = @idowner)
+		begin
+			set @chatban = (select PermissionChat from ListUsers 
+			where IDConference = @idconference AND IDUser = @idowner)
+			set @attachban = (select PermissionAttachment from ListUsers
+			where IDConference = @idconference AND IDUser = @idowner)
+		end
+		else
+		begin
+			set @chatban=0
+			set @attachban=0
+		end
+		--нет разрешения на сообщения - удаляем 
+		if (@chatban = 0)
+		begin
+			Insert into MessagesConference values (@idconference, @idmessage)
+		end
+		else
+		begin
+			delete from TextMessage where ID = @idmessage
+		end
+		--если не разрешено отправлять сообщения - обнуляем поле
+		if (@attachban = 0)
+		begin
+			update TextMessage set FirstAttachment = NULL where ID=@idmessage 
+		end 
+				
+		FETCH NEXT FROM Cmsg_Cursor into @iddialog, @idmessage
+end
+close Cmsg_cursor
+deallocate Cmsg_cursor
+
+go
 --3: триггер на стоп-слова - работает
+go
 create trigger DetectWord
 On TextMessage
 after insert 
@@ -14,25 +135,25 @@ join Timetable
 on Timetable.IDMajor = ComradeMajor.ID 
 where TimeTable.WorkDay = Convert(Date, Current_TIMESTAMP) AND  Convert (Time, CURRENT_TIMESTAMP) BETWEEN TimeTable.TimeStart AND Timetable.TimeEnd 
 )
---print 'майор :'+cast(@currentmajor as varchar)
+print 'майор :'+cast(@currentmajor as varchar)
 if (@currentMajor IS NOT NULL)		--если кто-то дежурит
 BEGIN
 ---------------------------
-	DECLARE Words_CURSOR CURSOR LOCAL
+	DECLARE Words_CURSOR SCROLL CURSOR 
 	FOR 
 	SELECT Dictionary.IDWord, StopWords.Word FROM Dictionary 
 	JOIN StopWords on StopWords.ID = Dictionary.IDWord
 	WHERE Dictionary.IDMajor = @currentMajor
 ---------------------------
-	DECLARE Messages_CURSOR CURSOR LOCAL
+	DECLARE Messages_CURSOR CURSOR 
 	FOR 
-	SELECT TextMessage.ID,TExtMessage.txt from TextMessage
+	SELECT TextMessage.ID,TextMessage.txt from TextMessage
 	JOIN INSERTED ON TextMessage.ID = inserted.ID
 ---------------------------   для начала циклов
 	OPEN MESSAGES_CURSOR
 	OPEN Words_CURSOR
 	FETCH NEXT FROM MESSAGES_CURSOR INTO @idmessage, @text
-	FETCH NEXT FROM Words_CURSOR INTO @idword, @word   --worked old
+	--FETCH NEXT FROM Words_CURSOR INTO @idword, @word   --worked old
 ----------------------------
 	while @@FETCH_STATUS = 0
 	BEGIN
@@ -40,15 +161,17 @@ BEGIN
 		set @idmessage = (select TextMessage.ID from inserted join TextMessage on TextMessage.ID = inserted.ID)
 		set @Text = (select TextMessage.Txt from TextMessage inner join INSERTED on TextMessage.ID = inserted.ID  where inserted.ID = @idmessage)
 		*/
-		--print 'idmessage:'+cast(@idmessage as varchar)
-		--print 'text:'+@Text
+		print 'idmessage:'+cast(@idmessage as varchar)
+		print 'text:'+@Text
+		print 'word'+@word
 		--open cursor
 		--поиск совпадений работает
-		--FETCH NEXT FROM Words_CURSOR INTO @idword, @word  -- пропускает запись из сообщений, поэтому закоментированно
+		FETCH FIRST FROM Words_CURSOR INTO @idword, @word  -- пропускает запись из сообщений, поэтому закоментированно
 		while @@FETCH_STATUS = 0
 		BEGIN
 			--print 'idword:'+@word
 			set @count = ((SELECT LEN(UPPER(@text)) - LEN(REPLACE(UPPER(@text), UPPER(@word), '')))/len(@word))
+			print'count:' + cast (@count as varchar)
 			if (@count!=0)				--(CHARINDEX(UPPER(@word), UPPER(@Text)) != -1)  -- if find 
 			BEGIN
 				INSERT INTO Coincedence(IDMessage,IDWord, IDMajor, CountInMessage) VALUES
@@ -64,6 +187,35 @@ BEGIN
 	DEALLOCATE Messages_CURSOR
 END
 go
+
+--Вместо удаления - меняем поле
+create trigger 
+MessageDelete ON TextMessage
+instead of delete
+as
+
+declare @rows int
+declare @id int
+declare @deltable table (rowid int identity(1,1), ID int)
+insert into @deltable (ID)
+select ID from deleted
+
+declare Del_mescursor CURSOR
+for select TextMessage.ID from TextMessage
+join deleted on TextMessage.ID = deleted.ID
+
+open del_mescursor 
+FETCH next from del_mescursor into @id
+while @@FETCH_STATUS =  0
+begin
+	update TextMessage set Deleted = 1 where ID = @id
+	FETCH next from del_mescursor into @id
+end
+close del_mescursor
+deallocate del_mescursor
+go
+
+
 
 /*
 --? курсоры и #temp
@@ -116,93 +268,4 @@ begin
 	end
 end*/
 --go 
-
---1: триггер: черного списка в диалоге  
-Create trigger BlacklistDialog
-On MessagesDialog
-instead of insert   
-as
-declare @iddialog int
-declare @idmessage int
-declare @idowner int
-declare @banned bit
-----------------------
---find dialog
-DECLARE Dialog_CURSOR CURSOR
-FOR 
-SELECT Dialog.ID
-from Dialog 
-join inserted on Dialog.ID = inserted.IDDialog
-----------
-OPEN Dialog_CURSOR
--------
-FETCH NEXT FROM Dialog_CURSOR INTO @iddialog
-WHILE @@FETCH_STATUS =0		
-BEGIN
-		PRINT 'IDDIALOG:' + CAST(@IDDIALOG AS VARCHAR)
-		DECLARE Message_CURSOR CURSOR			--сообщения диалога
-		FOR 
-		SELECT MessagesDialog.IDMessage, TextMessage.IDOwner from TextMessage
-		JOIN MessagesDialog ON MessagesDialog.IDMessage = TextMessage.ID
-		JOIN inserted ON Inserted.IDDialog = MessagesDialog.IDDialog
-		WHERE MessagesDialog.IDDialog=@iddialog
-		---------
-		OPEN Message_CURSOR
-
-		FETCH NEXT FROM Message_CURSOR INTO @idmessage , @idowner
-
-		PRINT 'IDOWNERMESSAGE[1]:' + CAST(@IDOWNER AS VARCHAR)
-		PRINT 'BANNED[1]:' + CAST(@BANNED AS VARCHAR)
-		WHILE @@FETCH_STATUS = 0
-		BEGIN
-				--ищем статус в чёрном списке
-				set @banned = (select ContactBook.BlacklistStatus from ContactBook
-				join Users on ContactBook.IDContact = Users.id 
-				join Dialog on 
-				(Dialog.IDFirst = Users.ID) OR (Dialog.IDSecond = Users.ID)				--пользователь состоит в диалоге (основатель или нет - не важно)
-				where Dialog.ID = @IDdialog AND @idowner = ContactBook.IDContact)		--владелец сообщения находится в контактной книге
-				-----------
-				PRINT 'IDOWNERMESSAGE:' + CAST( @IDOWNER AS VARCHAR)
-				PRINT 'BANNED:' + CAST(@BANNED AS VARCHAR)
-				if (@banned=1)
-				begin		
-					DELETE FROM TextMessage WHERE TextMessage.ID = @idmessage
-					--rollback
-				end
-				else
-				begin
-					INSERT INTO MessagesDialog Values (@IDdialog, @idmessage)
-					--commit
-				end
-				FETCH NEXT FROM Message_CURSOR INTO @idmessage, @idowner
-		END
-		FETCH NEXT FROM Dialog_CURSOR INTO @iddialog
-		CLOSE Message_CURSOR
-		DEALLOCATE Message_CURSOR
-		-------
-END
-
-CLOSE Dialog_CURSOR
-DEALLOCATE Dialog_CURSOR
-
---drop trigger BlacklistDialog
-
---2:  триггер прав доступа в конференции
 /*
-CREATE TRIGGER BlacklistConference
-	--find conference 
-	BEGIN
-		declare @IDconf int = (select MessagesConference.IDConference from MessagesConference 
-		join TextMessage on TextMessage.ID = MessagesConference.IDTextMessage)
-		if (@IDconf != NULL)
-		begin
-			declare @permissionMessage bit;
-			declare @permissionAttachment bit;
-			set @permissionAttachment = (select ListUsers.IDUser from ListUsers 
-			join Conference on ListUsers.IDConference = Conference.ID
-			join MessagesConference on MessagesConference.IDConference = Conference.ID
-			join TextMessage on TextMessage.ID = MessagesConference.IDTextMessage
-			where TextMessage.IDOwner = ListUsers.IDUser and Conference.ID=@IDconf)
-		end
-	END
-*/

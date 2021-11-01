@@ -72,7 +72,9 @@ IDFirst int foreign key references Users(ID) NOT NULL,			--ID первого участника
 IDSecond int foreign key references Users(ID) NOT NULL,			--ID второго участника
 TimeCreate DateTime Default Current_TimeStamp,					--Время создания
 LastMessage int,												--Номер последнего сообщения
-LastAttachment int)												--Номер последнего вложения
+LastAttachment int,												--Номер последнего вложения
+UNIQUE (IDFirst, IDSecond)
+)
 
 -- Настройка Е7  
 CREATE TABLE Settings(
