@@ -19,7 +19,7 @@ inserted.IDDialog, INSERTED.IDMessage
 FROM inserted
 OPEN DMsg_Cursor
 FETCH NEXT FROM DMsg_Cursor into @iddialog, @idmessage
-print @@FETCH_status
+--print @@FETCH_status
 while @@FETCH_STATUS = 0
 begin
 		
@@ -52,6 +52,7 @@ begin
 		end
 		else
 		begin
+			--print 'Запрещена отправка сообщений'
 			delete from TextMessage 
 			where ID = @idmessage
 		end
@@ -80,8 +81,8 @@ for select
 inserted.IDConference, INSERTED.IDTextMessage
 FROM inserted
 OPEN CMsg_Cursor
-FETCH NEXT FROM Cmsg_Cursor into @iddialog, @idmessage
-print @@FETCH_status
+FETCH NEXT FROM Cmsg_Cursor into @idconference, @idmessage
+--print @@FETCH_status
 while @@FETCH_STATUS = 0
 begin
 		set @idowner = (select IDOwner from TextMessage where ID = @idmessage)
@@ -106,15 +107,17 @@ begin
 		end
 		else
 		begin
+			--print 'Запрещена отправка сообщений'
 			delete from TextMessage where ID = @idmessage
 		end
 		--если не разрешено отправлять сообщения - обнуляем поле
 		if (@attachban = 0)
 		begin
+			--print 'Запрещена отправка вложений'
 			update TextMessage set FirstAttachment = NULL where ID=@idmessage 
 		end 
 				
-		FETCH NEXT FROM Cmsg_Cursor into @iddialog, @idmessage
+		FETCH NEXT FROM Cmsg_Cursor into @idconference, @idmessage
 end
 close Cmsg_cursor
 deallocate Cmsg_cursor
@@ -135,7 +138,7 @@ join Timetable
 on Timetable.IDMajor = ComradeMajor.ID 
 where TimeTable.WorkDay = Convert(Date, Current_TIMESTAMP) AND  Convert (Time, CURRENT_TIMESTAMP) BETWEEN TimeTable.TimeStart AND Timetable.TimeEnd 
 )
-print 'майор :'+cast(@currentmajor as varchar)
+--print 'майор :'+cast(@currentmajor as varchar)
 if (@currentMajor IS NOT NULL)		--если кто-то дежурит
 BEGIN
 ---------------------------
@@ -161,9 +164,9 @@ BEGIN
 		set @idmessage = (select TextMessage.ID from inserted join TextMessage on TextMessage.ID = inserted.ID)
 		set @Text = (select TextMessage.Txt from TextMessage inner join INSERTED on TextMessage.ID = inserted.ID  where inserted.ID = @idmessage)
 		*/
-		print 'idmessage:'+cast(@idmessage as varchar)
-		print 'text:'+@Text
-		print 'word'+@word
+		--print 'idmessage:'+cast(@idmessage as varchar)
+		--print 'text:'+@Text
+		--print 'word'+@word
 		--open cursor
 		--поиск совпадений работает
 		FETCH FIRST FROM Words_CURSOR INTO @idword, @word  -- пропускает запись из сообщений, поэтому закоментированно
@@ -171,7 +174,7 @@ BEGIN
 		BEGIN
 			--print 'idword:'+@word
 			set @count = ((SELECT LEN(UPPER(@text)) - LEN(REPLACE(UPPER(@text), UPPER(@word), '')))/len(@word))
-			print'count:' + cast (@count as varchar)
+			--print'count:' + cast (@count as varchar)
 			if (@count!=0)				--(CHARINDEX(UPPER(@word), UPPER(@Text)) != -1)  -- if find 
 			BEGIN
 				INSERT INTO Coincedence(IDMessage,IDWord, IDMajor, CountInMessage) VALUES
@@ -268,4 +271,4 @@ begin
 	end
 end*/
 --go 
-/*
+

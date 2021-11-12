@@ -76,10 +76,10 @@ SET IDENTITY_INSERT TextMessage OFF
 
 go
 INSERT INTO TextMessage VALUES
-(1,'Надо найти базу', CURRENT_TIMESTAMP, 1,CURRENT_TIMESTAMP,0,NULL,0,0,NULL),
+(1,'Надо найти и взорвать базу', CURRENT_TIMESTAMP, 1,CURRENT_TIMESTAMP,0,NULL,0,0,NULL),
 (2,'Необходимо устранить конкурентов', CURRENT_TIMESTAMP+1,1, CURRENT_TIMESTAMP,1,CURRENT_TIMESTAMP+0.5,1,0,NULL),
 (3,'Надо найти на карте оставленные документы и взорвать взорвать их', CURRENT_TIMESTAMP+2, 0, NULL, 0,NULL,0,0,NULL),
-(2,'Необходимо обеспечить непрерывной поток данных',CURRENT_TIMESTAMP+1, 0, NULL, 0,NULL,0,0,NULL)
+(2,'Необходимо обеспечить  и взорвать взорвать непрерывной поток данных',CURRENT_TIMESTAMP+1, 0, NULL, 0,NULL,0,0,NULL)
   
   /*
   delete from messagesDialog
@@ -91,21 +91,72 @@ INSERT INTO TextMessage VALUES
   /*delete from TextMessage where ID = 3
   update TextMessage set Deleted = 0 where TextMessage.ID = 3*/
   go
+
 Select IDMessage, 'Слово' = StopWords.Word, IDMajor, CountInMessage 
 from Coincedence
 --JOIN Dictionary ON Dictionary.IDWord = Coincedence.IDWord
 JOIN StopWords ON Coincedence.IDWord = StopWords.Id
 
-
+select * from TextMessage
+go
 INSERT INTO MessagesDialog VALUES
-(1,1),
-(1,2),
-(1,4),
-(2,3)
+(1,9),
+(2,10),
+(4,11),
+(3,12)
+
+Select * from Dialog
 /*
 delete from MessagesDialog
 select * from MessagesDialog
 */
+go
+SET IDENTITY_INSERT TextMessage OFF
+
+go
+INSERT INTO TextMessage VALUES
+(1,'А что он нам предлагает?', CURRENT_TIMESTAMP, 1,CURRENT_TIMESTAMP,0,NULL,0,0,NULL),
+(2,'Ну даже не знаю, может позже скажет', CURRENT_TIMESTAMP+1,1, CURRENT_TIMESTAMP,1,CURRENT_TIMESTAMP+0.5,1,0,NULL),
+(3,'Это при том, что у нас его нету', CURRENT_TIMESTAMP+2, 0, NULL, 0,NULL,0,0,1),
+(2,'И ему ещё нужно согласовать это',CURRENT_TIMESTAMP+1, 0, NULL, 0,NULL,0,0,NULL)
+
+insert into ListUsers VAlues
+(1,2,1,1,CURRENT_TIMESTAMP, 0),
+(1,3,0,0,CURRENT_TIMESTAMP, 0),
+(1,4,1,0,CURRENT_TIMESTAMP,0);
+
+go
+SET IDENTITY_INSERT Conference Off
+go
+insert into Conference values 
+(1,CURRENT_TIMESTAMP),
+(2,CURRENT_TIMESTAMP+1)
+
+select * from MessagesConference
+
+insert into Ring Values
+(1,3,'ноя 12 2021 4:22PM', 'ноя 12 2021 4:30PM',480) 
+
+insert into Mentions Values
+(1,1,1,5)
+
+select * from mentions 
+select * from Coincedence order by IDWord
+
+--exec statistic
+
+go
+select  * from ListUsers
+
+select * from TextMessage
+
+delete from MessagesConference
+
+insert into MessagesConference values
+(1,5),
+(1,6),
+(1,7),
+(1,8)
 
 
 
@@ -144,5 +195,5 @@ BlacklistStatus
 FROM ContactBook
 JOIN Users				ON ContactBook.IDOwner = Users.ID
 JOIN Users AS Users_2 ON ContactBook.IDContact = Users_2.ID
-
+select * from textmessage
 --*/
