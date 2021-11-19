@@ -143,7 +143,7 @@ IDRing int foreign key references Ring(ID)NOT NULL,
 IDWord int  NOT NULL,	
 IDMajor int  NOT NULL,
 TimeWithStartRing int default 0	NOT NULL								--Количество секунд с начала звонка
-Constraint IDMention PRIMARY KEY CLUSTERED (IDRing, IDWord, IDMajor), --PRIMARY KEY CLUSTERED
+Constraint IDMention PRIMARY KEY CLUSTERED (IDRing, IDWord, IDMajor, TimeWithStartRing), --PRIMARY KEY CLUSTERED
 foreign key (IDWord, IDMajor) references Dictionary(IDWord,IDMajor),
 )
 
@@ -162,7 +162,7 @@ IDConference int foreign key references Conference(ID) NOT NULL,
 IDUser int foreign key references Users(ID) NOT NULL,
 PermissionChat bit default 1 NOT NULL,									--Разрешение на отправку сообщений
 PermissionAttachment bit default 1 NOT NULL,							--Разрешение на отправку вложений
-DateInclusionOrExclusion Date NOT NULL,									--Дата включения или исключения
+DateInclusionOrExclusion DateTime NOT NULL default CURRENT_TIMESTAMP,									--Дата включения или исключения
 UserExclude bit default 0 NOT NULL,										--Участник удалён или нет
 Constraint ConfUserID Primary key (IDConference, IDUser)
 )

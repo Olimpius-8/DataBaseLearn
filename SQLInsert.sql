@@ -66,7 +66,12 @@ INSERT INTO ContactBook(IDOwner, IDContact, BlacklistStatus) VALUES
 (1,5,0),
 (2,1,1),
 (2,3,1),
-(2,4,0)
+(2,4,0),
+(3,1,1),
+(3,4,0),
+(4,2,1),
+(4,3,0)
+
 
 --select * from contactbook 
 
@@ -130,25 +135,63 @@ SET IDENTITY_INSERT Conference Off
 go
 insert into Conference values 
 (1,CURRENT_TIMESTAMP),
-(2,CURRENT_TIMESTAMP+1)
-
+(2,CURRENT_TIMESTAMP+1),
+(3,CURRENT_TIMESTAMP+2),
+(4,CURRENT_TIMESTAMP+3)
 select * from MessagesConference
 
+drop table mentions 
+--select * from ring
+
 insert into Ring Values
-(1,3,'ноя 12 2021 4:22PM', 'ноя 12 2021 4:30PM',480) 
+(1,3,'ноя 12 2021 4:22PM', 'ноя 12 2021 4:30PM',480),
+(2,4,'ноя 12 2021 8:46PM', 'ноя 12 2021 9:02PM',960) 
 
+--ring, word, major, time
 insert into Mentions Values
-(1,1,1,5)
-
-select * from mentions 
-select * from Coincedence order by IDWord
-
---exec statistic
-
-go
-select  * from ListUsers
+(2,1,1,5),
+(3,5,1,8),
+(3,5,1,15),
+(3,1,1,8)
 
 select * from TextMessage
+select * from Mentions 
+select * from Coincedence order by IDWord
+
+exec statistic
+
+go
+-------------------------listusers
+select * from ContactBook
+select * from Conference
+
+declare @Users ListLIneItem
+--SET IDENTITY_INSERT @Users Off
+insert into @Users Values 
+(1,2,1,1),
+(1,3,1,1),
+(1,4,0,0),
+(2,1,1,1),
+(2,3,1,0),
+(2,4,1,1),
+(3,1,1,1),
+(3,4,1,0),
+(4,2,1,0)
+select * from @Users
+exec CreateListUsers @LineItems = @Users
+
+
+----------------------------------список пользователей
+
+--delete  LIstUsers
+
+select  * from ListUsers
+-----------------------------------
+
+
+
+
+
 
 delete from MessagesConference
 
