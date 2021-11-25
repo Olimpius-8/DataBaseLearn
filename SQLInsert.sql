@@ -125,11 +125,6 @@ INSERT INTO TextMessage VALUES
 (3,'Это при том, что у нас его нету', CURRENT_TIMESTAMP+2, 0, NULL, 0,NULL,0,0,1),
 (2,'И ему ещё нужно согласовать это',CURRENT_TIMESTAMP+1, 0, NULL, 0,NULL,0,0,NULL)
 
-insert into ListUsers VAlues
-(1,2,1,1,CURRENT_TIMESTAMP, 0),
-(1,3,0,0,CURRENT_TIMESTAMP, 0),
-(1,4,1,0,CURRENT_TIMESTAMP,0);
-
 go
 SET IDENTITY_INSERT Conference Off
 go
@@ -138,9 +133,9 @@ insert into Conference values
 (2,CURRENT_TIMESTAMP+1),
 (3,CURRENT_TIMESTAMP+2),
 (4,CURRENT_TIMESTAMP+3)
-select * from MessagesConference
+--select * from MessagesConference
 
-drop table mentions 
+--drop table mentions 
 --select * from ring
 
 insert into Ring Values
@@ -154,6 +149,7 @@ insert into Mentions Values
 (3,5,1,15),
 (3,1,1,8)
 
+---------Статистика слов 1 процедура
 select * from TextMessage
 select * from Mentions 
 select * from Coincedence order by IDWord
@@ -163,36 +159,46 @@ exec statistic
 go
 -------------------------listusers
 select * from ContactBook
-select * from Conference
-
+----------------------------------список пользователей 2 процедура
 declare @Users ListLIneItem
 --SET IDENTITY_INSERT @Users Off
 insert into @Users Values 
+-- IDCONf, IDUser, chat, attachment
 (1,2,1,1),
 (1,3,1,1),
-(1,4,0,0),
+(1,NULL,0,0),
+
 (2,1,1,1),
 (2,3,1,0),
 (2,4,1,1),
+
 (3,1,1,1),
 (3,4,1,0),
+
 (4,2,1,0)
 select * from @Users
 exec CreateListUsers @LineItems = @Users
+--delete  ListUsers
 
 
-----------------------------------список пользователей
 
---delete  LIstUsers
+exec CreateListUsers @values = '
+1,2,1,1;
+1,3,1,1;
+1,NULL,0,0;
+
+2,1,1,1;
+2,3,1,0;
+2,4,1,1;
+
+3,1,1,1;
+3,4,1,0;
+
+4,2,1,0;'
 
 select  * from ListUsers
 -----------------------------------
-
-
-
-
-
-
+select * from Conference
 delete from MessagesConference
 
 insert into MessagesConference values
@@ -217,8 +223,6 @@ ON ComradeMajor.ID = Dictionary.IDMajor
 JOIN TimeTable
 ON TimeTable.IDMajor = ComradeMajor.ID
 where TimeTable.WorkDay = Convert(Date, Current_TIMESTAMP) AND  Convert (Time, CURRENT_TIMESTAMP) BETWEEN TimeTable.TimeStart AND Timetable.TimeEnd 
-
-
 
 SELECT * FROM Users
 
