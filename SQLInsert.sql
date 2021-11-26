@@ -10,10 +10,20 @@ INSERT INTO Users(Nickname,PhoneNumber,Name, Lastname, Surname, LastSession, Enc
 ('ЗЫЗЫА',		'78956423512',	'Тимофей',	'Покрышкин',	'Михайлович',	Current_TimeStamp,	'k234jhKJh342'	),
 ('a',			'76786592873',	'Афанасий',	'Малыкин',		'Ибрагимович',  Current_TimeStamp,	'as0b9cv7hj'	),
 ('b',			'79864521354',	'Андрей',	'Скоморохин',	'Тимурович',	Current_TimeStamp,	'odfiger9df'	),
-('c',			'87907987986',	'Анатолий',	'Силиванов',	'Артурович',	Current_TimeStamp,	'D)(UdsgG*(&s9'	);
+('c',			'87907987986',	'Анатолий',	'Силиванов',	'Артурович',	Current_TimeStamp,	'D)(UdsgG*(&s9'	),
+('Lopat',		'72342938598',	'Константин','Лебедев',		'Олегович',		CURRENT_TIMESTAMP,	'ao978f90 rtq9439'),
+('Nomad',		'91348573495',	'Андрей',	'Никифоров',	'Степанович',	CURRENT_TIMESTAMP,	'aosdiuvcxocvij'),
+('Valkyrie',	'12039857149',  'Ирина',	'Семенчук',		'Дмитриевна',	CURRENT_TIMESTAMP, 'aov-214'),
+('Monty',		'49328574983',	'Геннадий',	'Бенедикт',		'Cергеев',		CURRENT_TIMESTAMP, '2039cb-xcb-09*&'),
+('Smoke',		'89787676554',	'Владислав','Покрышин',		'Михайлович',	CURRENT_TIMESTAMP, '(*&kjvisu&^%$sdg');
 
 go
---select * from stopwords
+/*
+select IDMessage, IDOwner from TextMessage 
+join MessagesDialog on MessagesDialog.IDMessage = TextMessage.ID
+where IDOwner = 2 OR IDOwner =3 
+order by IDOwner
+*/
 INSERT INTO StopWords(Word, priority) VALUES
 ('Взорвать',			2),
 ('Похитить',			2),
@@ -178,17 +188,17 @@ insert into @Users Values
 (4,2,1,0)
 select * from @Users
 exec CreateListUsers @LineItems = @Users
+
+
+
 --delete  ListUsers
-
-
-
 exec CreateListUsers @values = '
 1,2,1,1;
 1,3,1,1;
-1,NULL,0,0;
+1,4,NULL,0;
 
 2,1,1,1;
-2,3,1,0;
+2,NULL,1,0;
 2,4,1,1;
 
 3,1,1,1;

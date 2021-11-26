@@ -43,21 +43,24 @@ print CHARINDEX(';','1,2,3,4;5,6,7,8;9,10,11,12;',9)
 print CHARINDEX(';','1,2,3,4;5,6,7,8;9,10,11,12;',17)
 print CHARINDEX(';','1,2,3,4;5,6,7,8;9,10,11,12;',28)
 
-print SUBSTRING('1,2,3,4,5,6,7,8,', 1, (CHARINDEX(',','1,2,3,4,5,6,7,8,',1))-1) +'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,8,',1)) as char)
-print SUBSTRING('1,2,3,4,5,6,7,8,', 3, (CHARINDEX(',','1,2,3,4,5,6,7,8,',3))-3)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,8,',3)) as char)
-print SUBSTRING('1,2,3,4,5,6,7,8,', 5, (CHARINDEX(',','1,2,3,4,5,6,7,8,',5))-5)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,8,',5)) as char)
-print SUBSTRING('1,2,3,4,5,6,7,8,', 7, (CHARINDEX(',','1,2,3,4,5,6,7,8,',7))-7)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,8,',7))as char)
-print SUBSTRING('1,2,3,4,5,6,7,8,', 9, (CHARINDEX(',','1,2,3,4,5,6,7,8,',9))-9)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,8,',9))as char)
-print SUBSTRING('1,2,3,4,5,6,7,8,', 11, (CHARINDEX(',','1,2,3,4,5,6,7,8,',11))-11)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,8,',11))as char)
-print SUBSTRING('1,2,3,4,5,6,7,8,', 13, (CHARINDEX(',','1,2,3,4,5,6,7,8,',13))-13)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,8,',13))as char)
-print SUBSTRING('1,2,3,4,5,6,7,8;', 15, (CHARINDEX(';','1,2,3,4,5,6,7,8;',15))-15)+'|'+ cast ((CHARINDEX(';','1,2,3,4,5,6,7,8,',15))as char)
+print SUBSTRING('1,2,3,4,5,6,7,800,', 1, (CHARINDEX(',','1,2,3,4,5,6,7,800,',1))-1) +'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,800,',1)) as char)
+print SUBSTRING('1,2,3,4,5,6,7,800,', 3, (CHARINDEX(',','1,2,3,4,5,6,7,800,',3))-3)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,800,',3)) as char)
+print SUBSTRING('1,2,3,4,5,6,7,800,', 5, (CHARINDEX(',','1,2,3,4,5,6,7,800,',5))-5)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,800,',5)) as char)
+print SUBSTRING('1,2,3,4,5,6,7,800,', 7, (CHARINDEX(',','1,2,3,4,5,6,7,800,',7))-7)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,800,',7))as char)
+print SUBSTRING('1,2,3,4,5,6,7,800,', 9, (CHARINDEX(',','1,2,3,4,5,6,7,800,',9))-9)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,800,',9))as char)
+print SUBSTRING('1,2,3,4,5,6,7,800,', 11, (CHARINDEX(',','1,2,3,4,5,6,7,800,',11))-11)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,800,',11))as char)
+print SUBSTRING('1,2,3,4,5,6,7,800,', 13, (CHARINDEX(',','1,2,3,4,5,6,7,800,',13))-13)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,800,',13))as char)
+print SUBSTRING('1,2,3,4,5,6,7,800;', 15, (CHARINDEX(';','1,2,3,4,5,6,7,800;',15))-15)+'|'+ cast ((CHARINDEX(';','1,2,3,4,5,6,7,800,',15))as char)
 
 --print SUBSTRING('1,2,3,4,5,6,7,8,', 19, (CHARINDEX(',','1,2,3,4,5,6,7,8,',19))-19)
+
+
+print SUBSTRING('1,2,1,1;1,3,1,1;1,236663,0,0;2,21,1,1;2,23,1,0;2,24,1,1;3,31,1,1;3,44,1,0;4,2,1,0;', 19, (25-19))
 */
 go
 create procedure CreateListUsers
 (
-	@values nvarchar(max)
+	@values varchar(max)
 )
 as
 begin
@@ -68,63 +71,62 @@ begin
 	@attach		bit,
 	@admin		int,
 	@banned		bit,
-	@delimeter1 nvarchar = ';',
-	@delimeter2 nvarchar = ',',
+	@delimeter1 varchar = ';',
+	@delimeter2 varchar = ',',
 	@indexdelimeter1 int,
 	@indexdelimeter2 int,
 	@number		int = 1	,			--current index in string 
-	@temp nvarchar
+	@temp varchar(max),
+	@check varchar(2)
 
-	set @values = replace (replace(@values, CHAR(10),''), CHAR(13), ' ')
+	set @values = REPLACE(REPLACE(REPLACE(@values, CHAR(10), ''), CHAR(13), ''), CHAR(9), '')
+	set @check =  REVERSE(@values)
+	if CHARINDEX(@delimeter1,@check,0)!=1
+		set @values = concat(@values, ';')
 	--------------
 	set @indexdelimeter1 = CHARINDEX(@delimeter1,@values,@number)
 	while (@indexdelimeter1 != 0)
 	begin
-		--print @indexdelimeter1
 		set @indexdelimeter2 = CHARINDEX(@delimeter2,@values, @number)
-		--print @indexdelimeter2
 		if @indexdelimeter2 !=0				--check end of string
 		begin
 			-----------idconf
 			set @temp = SUBSTRING(@values, @number, (@indexdelimeter2-@number))
-			if (@temp!='NULL')
-				set @id_conf = Cast(@temp as int)
-			else
+			if (@temp='NULL')
 				set @id_conf = 0
+			else
+				set @id_conf = Cast(@temp as int)
 			set @number = @indexdelimeter2+1
 			------------iduser
 			set @indexdelimeter2 = CHARINDEX(@delimeter2,@values, @number)
-			--print @indexdelimeter2
 			set @temp = SUBSTRING(@values, @number, (@indexdelimeter2-@number))
-			if (@temp!='NULL')
-				set @id_user = Cast(@temp as int)
-			else
+			if (@temp='NULL')
 				set @id_user = 0
+			else
+				set @id_user = Cast(@temp as int)
 			set @number = @indexdelimeter2+1
 			------------chat
 			set @indexdelimeter2 = CHARINDEX(@delimeter2,@values, @number)
-			--print @indexdelimeter2
 			set @temp = SUBSTRING(@values, @number, (@indexdelimeter2-@number))
-			if (@temp!='NULL')
-				set @chat  = Cast(@temp as bit)
+			if (@temp='NULL')
+				set @chat  = 0
 			else
-				set @chat = NULL
-			
+				set @chat = Cast(@temp as bit)
 			set @number = @indexdelimeter2+1
 			------------attach
 			set @temp = SUBSTRING(@values, @number, (@indexdelimeter1-@number))
-			if (@temp!='NULL')
-				set @attach  = Cast(@temp as bit)
+			if (@temp='NULL')
+				set @attach  =  0
 			else
-				set @attach = NULL
+				set @attach =Cast(@temp as bit)
 			set @number = @indexdelimeter1+1
 			------------
 			--print cast(@id_conf as varchar) + '|' + cast(@id_user as varchar)  + '|'+ cast(@chat as varchar)  + '|'+ cast(@attach as varchar)
 		end
 		--start insert
-		--while (@counter <= @rows)
+		
 		begin
-			if (@id_conf != 0 AND @id_user!=0)					-- AND @chat!=NULL AND @attach!=NULL)
+			if (@id_conf != 0 AND @id_user!=0)					
 			begin
 				set @admin = (select Conference.IDAdmin from Conference where ID = @id_conf)
 				if Exists (select BlacklistStatus from ContactBook where IDOwner = @id_user AND IDContact = @admin)
@@ -159,6 +161,7 @@ create type ListLineItem as Table (
 	Attach bit
 );
 go
+--old variant in table
 create procedure CreateListUsersTable
 (
 @LineItems ListLineItem READONLY
@@ -198,7 +201,14 @@ begin
 end
 go
 
-/*
-select * from ContactBook
-select * from Conference
-*/
+SELECT 
+Users.ID,
+'Владелец'=(Users.Name +' '+Users.Lastname+' '+Users.Surname) ,
+'Его номер' = Users.PhoneNumber, 
+Users_2.ID,
+'Абонент'=(Users_2.Name +' '+Users_2.Lastname+' '+Users_2.Surname),
+'Номер' = Users_2.PhoneNumber,
+BlacklistStatus
+FROM ContactBook
+JOIN Users				ON ContactBook.IDOwner = Users.ID
+JOIN Users AS Users_2 ON ContactBook.IDContact = Users_2.ID
