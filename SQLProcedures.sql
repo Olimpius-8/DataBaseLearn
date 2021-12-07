@@ -19,7 +19,7 @@ end
 
 go
 
-exec statistic 
+
 
 create procedure Statistic
 As
@@ -199,8 +199,13 @@ begin
 		set @counter = @counter + 1
 	end
 end
+
 go
 
+
+create procedure printContactBook
+as
+begin
 SELECT 
 Users.ID,
 'Владелец'=(Users.Name +' '+Users.Lastname+' '+Users.Surname) ,
@@ -212,3 +217,48 @@ BlacklistStatus
 FROM ContactBook
 JOIN Users				ON ContactBook.IDOwner = Users.ID
 JOIN Users AS Users_2 ON ContactBook.IDContact = Users_2.ID
+end
+
+go
+
+
+create procedure printCurrentMajorDictionary
+as
+begin
+--выводит слова дежурного товарица майора
+SELECT  
+ComradeMajor.ID,
+'Майор' = (ComradeMajor.Name +' '+ ComradeMajor.Lastname +' '+ ComradeMajor.Surname),
+'Стоп-слово' = StopWords.Word,
+'Приоритет' = StopWords.Priority
+FROM Dictionary 
+JOIN StopWords
+ON Dictionary.IDWord = StopWords.ID
+JOIN ComradeMajor
+ON ComradeMajor.ID = Dictionary.IDMajor
+JOIN TimeTable
+ON TimeTable.IDMajor = ComradeMajor.ID
+where TimeTable.WorkDay = Convert(Date, Current_TIMESTAMP) AND  Convert (Time, CURRENT_TIMESTAMP) BETWEEN TimeTable.TimeStart AND Timetable.TimeEnd 
+end
+go
+
+
+create procedure printMajorsDictionary
+as
+begin
+--выводит слова дежурного товарица майора
+SELECT  
+ComradeMajor.ID,
+'Майор' = (ComradeMajor.Name +' '+ ComradeMajor.Lastname +' '+ ComradeMajor.Surname),
+'Стоп-слово' = StopWords.Word,
+'Приоритет' = StopWords.Priority
+FROM Dictionary 
+JOIN StopWords
+ON Dictionary.IDWord = StopWords.ID
+JOIN ComradeMajor
+ON ComradeMajor.ID = Dictionary.IDMajor
+JOIN TimeTable
+ON TimeTable.IDMajor = ComradeMajor.ID
+order by  ComradeMajor.ID
+
+end

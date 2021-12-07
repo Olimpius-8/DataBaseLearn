@@ -16,14 +16,8 @@ INSERT INTO Users(Nickname,PhoneNumber,Name, Lastname, Surname, LastSession, Enc
 ('Valkyrie',	'12039857149',  'Ирина',	'Семенчук',		'Дмитриевна',	CURRENT_TIMESTAMP, 'aov-214'),
 ('Monty',		'49328574983',	'Геннадий',	'Бенедикт',		'Cергеев',		CURRENT_TIMESTAMP, '2039cb-xcb-09*&'),
 ('Smoke',		'89787676554',	'Владислав','Покрышин',		'Михайлович',	CURRENT_TIMESTAMP, '(*&kjvisu&^%$sdg');
-
 go
-/*
-select IDMessage, IDOwner from TextMessage 
-join MessagesDialog on MessagesDialog.IDMessage = TextMessage.ID
-where IDOwner = 2 OR IDOwner =3 
-order by IDOwner
-*/
+
 INSERT INTO StopWords(Word, priority) VALUES
 ('Взорвать',			2),
 ('Похитить',			2),
@@ -31,7 +25,7 @@ INSERT INTO StopWords(Word, priority) VALUES
 ('Взломать',			2),
 ('Устранить',			2),
 ('Не по телефону',		4);
---select * from comrademajor
+
 INSERT INTO ComradeMajor(Name, Lastname, Surname) VALUES
 ('Антон','Бондаренко','Степанович'),
 ('Олег','Демидов','Александрович'),
@@ -40,8 +34,8 @@ INSERT INTO ComradeMajor(Name, Lastname, Surname) VALUES
 ('Николай','Трофимов','Дамирович'),
 ('Владислав','Никифоров','Артёмович');
 
-SET IDENTITY_INSERT Timetable OFF		--отключаем ручной ввод ID
---select * from  timetable 
+SET IDENTITY_INSERT Timetable OFF		
+
 INSERT INTO Timetable(IDMajor, WorkDay, TimeStart, TimeEnd) VALUES
 (1,GETDATE(),'3:30','21:30'),
 (2,GETDATE()+1,'08:30','17:30'),
@@ -56,8 +50,6 @@ INSERT INTO Dialog(IDFirst, IDSecond, TimeCreate, LastMessage, LastAttachment) V
 (2,3,CURRENT_TIMESTAMP,NULL,NULL),
 (1,4,CURRENT_TIMESTAMP,NULL,NULL)
 
---select * from dialog
-
 INSERT INTO Dictionary(IDWord,IDMajor) VALUES
 (1,1),
 (1,2),
@@ -68,7 +60,7 @@ INSERT INTO Dictionary(IDWord,IDMajor) VALUES
 (3,2),
 (3,4),
 (3,5);
---select * from dictionary
+
 INSERT INTO ContactBook(IDOwner, IDContact, BlacklistStatus) VALUES
 (1,2,0),
 (1,3,0),
@@ -82,10 +74,15 @@ INSERT INTO ContactBook(IDOwner, IDContact, BlacklistStatus) VALUES
 (4,2,1),
 (4,3,0)
 
+SET IDENTITY_INSERT Conference Off
+go
+insert into Conference values 
+(1,CURRENT_TIMESTAMP),
+(2,CURRENT_TIMESTAMP+1),
+(3,CURRENT_TIMESTAMP+2),
+(4,CURRENT_TIMESTAMP+3)
 
---select * from contactbook 
 
---delete from ContactBook
 go
 SET IDENTITY_INSERT TextMessage OFF
 
@@ -95,30 +92,18 @@ INSERT INTO TextMessage VALUES
 (2,'Необходимо устранить конкурентов', CURRENT_TIMESTAMP+1,1, CURRENT_TIMESTAMP,1,CURRENT_TIMESTAMP+0.5,1,0,NULL),
 (3,'Надо найти на карте оставленные документы и взорвать взорвать их', CURRENT_TIMESTAMP+2, 0, NULL, 0,NULL,0,0,NULL),
 (2,'Необходимо обеспечить  и взорвать взорвать непрерывной поток данных',CURRENT_TIMESTAMP+1, 0, NULL, 0,NULL,0,0,NULL)
-  
-  /*
-  delete from messagesDialog
-  delete from coincedence
-  disable trigger MessageDelete on TextMessage
-  delete from TextMessage
-  */
-  --select * from textmessage
-  /*delete from TextMessage where ID = 3
-  update TextMessage set Deleted = 0 where TextMessage.ID = 3*/
+   
   go
 
-Select IDMessage, 'Слово' = StopWords.Word, IDMajor, CountInMessage 
-from Coincedence
---JOIN Dictionary ON Dictionary.IDWord = Coincedence.IDWord
-JOIN StopWords ON Coincedence.IDWord = StopWords.Id
+  delete from TextMessage
 
-select * from TextMessage
 go
 INSERT INTO MessagesDialog VALUES
-(1,9),
-(2,10),
-(4,11),
-(3,12)
+(1,1),
+(2,2),
+(4,3),
+(3,4)
+
 
 Select * from Dialog
 /*
@@ -136,13 +121,7 @@ INSERT INTO TextMessage VALUES
 (2,'И ему ещё нужно согласовать это',CURRENT_TIMESTAMP+1, 0, NULL, 0,NULL,0,0,NULL)
 
 go
-SET IDENTITY_INSERT Conference Off
-go
-insert into Conference values 
-(1,CURRENT_TIMESTAMP),
-(2,CURRENT_TIMESTAMP+1),
-(3,CURRENT_TIMESTAMP+2),
-(4,CURRENT_TIMESTAMP+3)
+
 --select * from MessagesConference
 
 --drop table mentions 
@@ -151,26 +130,28 @@ insert into Conference values
 insert into Ring Values
 (1,3,'ноя 12 2021 4:22PM', 'ноя 12 2021 4:30PM',480),
 (2,4,'ноя 12 2021 8:46PM', 'ноя 12 2021 9:02PM',960) 
+go
 
 --ring, word, major, time
 insert into Mentions Values
 (2,1,1,5),
-(3,5,1,8),
-(3,5,1,15),
-(3,1,1,8)
+(1,5,1,8),
+(1,5,1,15),
+(2,1,1,8)
+
+--select * from Mentions
 
 ---------Статистика слов 1 процедура
-select * from TextMessage
+/*select * from TextMessage
 select * from Mentions 
 select * from Coincedence order by IDWord
 
 exec statistic
-
+*/
 go
 -------------------------listusers
-select * from ContactBook
 ----------------------------------список пользователей 2 процедура
-declare @Users ListLIneItem
+/*declare @Users ListLIneItem
 --SET IDENTITY_INSERT @Users Off
 insert into @Users Values 
 -- IDCONf, IDUser, chat, attachment
@@ -189,7 +170,7 @@ insert into @Users Values
 select * from @Users
 exec CreateListUsers @LineItems = @Users
 
-
+*/
 
 --delete  ListUsers
 exec CreateListUsers @values = '
@@ -206,10 +187,7 @@ exec CreateListUsers @values = '
 
 4,2,1,0;'
 
-select  * from ListUsers
------------------------------------
-select * from Conference
-delete from MessagesConference
+
 
 insert into MessagesConference values
 (1,5),
@@ -219,38 +197,4 @@ insert into MessagesConference values
 
 
 
---выводит слова дежурного товарица майора
-SELECT  
-ComradeMajor.ID,
-'Майор' = (ComradeMajor.Name +' '+ ComradeMajor.Lastname +' '+ ComradeMajor.Surname),
-'Стоп-слово' = StopWords.Word,
-'Приоритет' = StopWords.Priority
-FROM Dictionary 
-JOIN StopWords
-ON Dictionary.IDWord = StopWords.ID
-JOIN ComradeMajor
-ON ComradeMajor.ID = Dictionary.IDMajor
-JOIN TimeTable
-ON TimeTable.IDMajor = ComradeMajor.ID
-where TimeTable.WorkDay = Convert(Date, Current_TIMESTAMP) AND  Convert (Time, CURRENT_TIMESTAMP) BETWEEN TimeTable.TimeStart AND Timetable.TimeEnd 
 
-SELECT * FROM Users
-
-SELECT * FROM StopWords
-
-SELECT * FROM Timetable
-
---выводит контактную книгу
-SELECT 
-Users.ID,
-'Владелец'=(Users.Name +' '+Users.Lastname+' '+Users.Surname) ,
-'Его номер' = Users.PhoneNumber, 
-Users_2.ID,
-'Абонент'=(Users_2.Name +' '+Users_2.Lastname+' '+Users_2.Surname),
-'Номер' = Users_2.PhoneNumber,
-BlacklistStatus
-FROM ContactBook
-JOIN Users				ON ContactBook.IDOwner = Users.ID
-JOIN Users AS Users_2 ON ContactBook.IDContact = Users_2.ID
-select * from textmessage
---*/

@@ -218,14 +218,6 @@ close del_mescursor
 deallocate del_mescursor
 go
 
-create trigger 
-RingInsert ON Ring
-after insert
-as
-begin
-	
-end
-go
 /*
 --? курсоры и #temp
 
