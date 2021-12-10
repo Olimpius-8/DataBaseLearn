@@ -35,29 +35,6 @@ GROUP BY StopWords.Id,ComradeMajor.ID,Word,name,lastname, surname
 end 
 go
 
-------------------------------------------------------------
-
-
-/*print CHARINDEX(';','1,2,3,4;5,6,7,8;9,10,11,12;')
-print CHARINDEX(';','1,2,3,4;5,6,7,8;9,10,11,12;',9)
-print CHARINDEX(';','1,2,3,4;5,6,7,8;9,10,11,12;',17)
-print CHARINDEX(';','1,2,3,4;5,6,7,8;9,10,11,12;',28)
-
-print SUBSTRING('1,2,3,4,5,6,7,800,', 1, (CHARINDEX(',','1,2,3,4,5,6,7,800,',1))-1) +'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,800,',1)) as char)
-print SUBSTRING('1,2,3,4,5,6,7,800,', 3, (CHARINDEX(',','1,2,3,4,5,6,7,800,',3))-3)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,800,',3)) as char)
-print SUBSTRING('1,2,3,4,5,6,7,800,', 5, (CHARINDEX(',','1,2,3,4,5,6,7,800,',5))-5)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,800,',5)) as char)
-print SUBSTRING('1,2,3,4,5,6,7,800,', 7, (CHARINDEX(',','1,2,3,4,5,6,7,800,',7))-7)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,800,',7))as char)
-print SUBSTRING('1,2,3,4,5,6,7,800,', 9, (CHARINDEX(',','1,2,3,4,5,6,7,800,',9))-9)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,800,',9))as char)
-print SUBSTRING('1,2,3,4,5,6,7,800,', 11, (CHARINDEX(',','1,2,3,4,5,6,7,800,',11))-11)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,800,',11))as char)
-print SUBSTRING('1,2,3,4,5,6,7,800,', 13, (CHARINDEX(',','1,2,3,4,5,6,7,800,',13))-13)+'|'+ cast ((CHARINDEX(',','1,2,3,4,5,6,7,800,',13))as char)
-print SUBSTRING('1,2,3,4,5,6,7,800;', 15, (CHARINDEX(';','1,2,3,4,5,6,7,800;',15))-15)+'|'+ cast ((CHARINDEX(';','1,2,3,4,5,6,7,800,',15))as char)
-
---print SUBSTRING('1,2,3,4,5,6,7,8,', 19, (CHARINDEX(',','1,2,3,4,5,6,7,8,',19))-19)
-
-
-print SUBSTRING('1,2,1,1;1,3,1,1;1,236663,0,0;2,21,1,1;2,23,1,0;2,24,1,1;3,31,1,1;3,44,1,0;4,2,1,0;', 19, (25-19))
-*/
-go
 create procedure CreateListUsers
 (
 	@values varchar(max)
@@ -148,12 +125,8 @@ begin
 	end
 end
 go
----------------------------------down checked
-	/*if (CHARINDEX(@delimeter1, reverse(@values)))!=1
-	begin
-		set @values = @values+';'
-	end*/
-create type ListLineItem as Table (
+---------------------------------down alternative method
+	create type ListLineItem as Table (
 	IDRows int identity (1,1),
 	IDConf int,
 	IDUser int,
