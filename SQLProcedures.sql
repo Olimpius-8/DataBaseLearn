@@ -175,24 +175,49 @@ end
 
 go
 
+create function FIO(@iduser int)
+returns varchar(max)
+begin
+	declare @name varchar(max)
+	declare @lastname varchar(max)
+	declare @surname varchar(max)
+	declare @result varchar(max)
+	set @name = (select Users.Name from Users where Users.ID = @iduser)
+	set @lastname = (select Users.Lastname from Users where Users.ID = @iduser)
+	set @surname = (select Users.Surname from Users where Users.ID = @iduser)
+	if (@name != NULL)
+		set @result = @name + ' '
+	if (@lastname != NULL)
+		set @result = @lastname + ' '
+	if (@surname != NULL)
+		set @result = @surname
+	set @result = (trim(@result))
+	return @result
+end
+
+go
 
 create procedure printContactBook
 as
 begin
 SELECT 
 Users.ID,
-'Владелец'=(Users.Name +' '+Users.Lastname+' '+Users.Surname) ,
+'Владелец'=(Users.Name +' '+Users.Lastname+' '+ISNULL(Users.Surname,'')) ,
 'Его номер' = Users.PhoneNumber, 
 Users_2.ID,
-'Абонент'=(Users_2.Name +' '+Users_2.Lastname+' '+Users_2.Surname),
+'Абонент'=(Users_2.Name +' '+Users_2.Lastname+' '+ISNULL(Users_2.Surname,'')),
 'Номер' = Users_2.PhoneNumber,
-BlacklistStatus
+CASE  
+WHEN BlacklistStatus = 0 then ''
+else 'Заблокирован'
+end as BlacklistStatus
 FROM ContactBook
 JOIN Users				ON ContactBook.IDOwner = Users.ID
 JOIN Users AS Users_2 ON ContactBook.IDContact = Users_2.ID
 end
 
-go
+
+
 
 
 create procedure printCurrentMajorDictionary
@@ -214,7 +239,6 @@ ON TimeTable.IDMajor = ComradeMajor.ID
 where TimeTable.WorkDay = Convert(Date, Current_TIMESTAMP) AND  Convert (Time, CURRENT_TIMESTAMP) BETWEEN TimeTable.TimeStart AND Timetable.TimeEnd 
 end
 go
-
 
 create procedure printMajorsDictionary
 as

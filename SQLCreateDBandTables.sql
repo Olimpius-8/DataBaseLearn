@@ -11,7 +11,7 @@ go
 USE Pelegram
 
 go
-
+--alter table Users alter column surname varchar(100) NULL
 --  Пользователь Е1
 CREATE TABLE Users(
 ID INT NOT NULL PRIMARY KEY IDENTITY(1,1),						--ID 
@@ -20,7 +20,7 @@ PhoneNumber CHAR(11) NOT NULL UNIQUE							--Телефон
 check (PhoneNumber like ('[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]')),--regex in MS SQL not work			
 Name VARCHAR(100) NOT NULL,										--Имя
 Lastname VARCHAR(100) NOT NULL,									--Фамилия
-Surname VARCHAR(100) NOT NULL,									--Отчество
+Surname VARCHAR(100),									--Отчество
 LastSession DateTime Default Current_TimeStamp,					--Время последней сессии 
 EncriptionKey VARCHAR(100) NOT NULL,							--Ключ шифрования
 Deleted Bit default 0 NOT NULL									--Пользователь удален  или нет
