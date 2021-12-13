@@ -218,6 +218,42 @@ close del_mescursor
 deallocate del_mescursor
 go
 
+--Автоподсчёт длительности звонка
+create trigger 
+RingTalktime ON Ring
+instead of insert
+as
+declare @id int,
+		@idinner int,
+		@idouter int
+declare @timestart datetime
+declare @timeend datetime,
+		@talk  int
+Declare Ring_Cursor CURSOR
+for select
+inserted.ID, inserted.IDInner, inserted.IDOuter, inserted.TimeStart, inserted.TimeEnd
+FROM inserted
+OPEN Ring_Cursor
+FETCH NEXT FROM Ring_Cursor into @id, @idinner, @idouter, @timestart, @timeend
+
+while @@FETCH_STATUS = 0
+begin
+		--print(@timestart)
+		--print(@timeend)
+
+		set @talk = (select datediff (s, @timestart, @timeend))
+		if (@talk is null)
+		set @talk = 0
+		
+
+			INSERT INTO Ring(IDInner, IDOuter, TimeStart, TimeEnd, Talktime) VALUES
+			( @idinner, @idouter, @timestart, @timeend, @talk)
+		FETCH NEXT FROM Ring_Cursor into @id, @idinner, @idouter, @timestart, @timeend
+end
+close Ring_Cursor
+deallocate Ring_Cursor
+go
+
 /*
 --? курсоры и #temp
 
