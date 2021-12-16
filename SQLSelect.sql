@@ -57,12 +57,13 @@ go
 	По горизонтали:    	
 * Кол-во найденных случаев всеми майорами за месяц (случаев - не количество слов по сообщениям)
 * Суммарная длина звонков
-* Самый общительный пользователь
+* Топ пользователь чата
 */
-select [Data] from 
-(
+select * from (
+  select * from 
+  (
 	--======================================
-	select Layer1.monthstat, CIM, TT, UserID from (	
+	select Layer1.monthstat as monthstat, CIM, TT, UserID from (	
 	--111
 		select monthstat,count (CIM) as CIM from --, UserID 	from 
 			(select monthstat, count (CIM) as CIM from 
@@ -80,7 +81,7 @@ select [Data] from
 				)as Temp1
 				group by monthstat 
 				--------------------------------------------------------
-				union select case when   1  < month(getdate()) then concat(year(getdate()),'.0',1) else concat(year(getdate()-365),'.0',1)   end ,  0
+				/*union select case when   1  < month(getdate()) then concat(year(getdate()),'.0',1) else concat(year(getdate()-365),'.0',1)   end ,  0
 				union select case when   2  < month(getdate()) then concat(year(getdate()),'.0',2) else concat(year(getdate()-365),'.0',2)   end ,  0
 				union select case when   3  < month(getdate()) then concat(year(getdate()),'.0',3) else concat(year(getdate()-365),'.0',3)   end ,  0
 				union select case when   4  < month(getdate()) then concat(year(getdate()),'.0',4) else concat(year(getdate()-365),'.0',4)   end ,  0
@@ -91,12 +92,12 @@ select [Data] from
 				union select case when   9  < month(getdate()) then concat(year(getdate()),'.0',9) else concat(year(getdate()-365),'.0',9)   end ,  0
 				union select case when   10  < month(getdate()) then concat(year(getdate()),'.',10) else concat(year(getdate()-365),'.',10)   end , 0
 				union select case when   11  < month(getdate()) then concat(year(getdate()),'.',11) else concat(year(getdate()-365),'.',11)   end , 0
-				union select case when   12  < month(getdate()) then concat(year(getdate()),'.',12) else concat(year(getdate()),'.',12)   end , 0
+				union select case when   12  < month(getdate()) then concat(year(getdate()),'.',12) else concat(year(getdate()),'.',12)   end , 0*/
 			)as Result1
 			group by monthstat
 		) as Layer1
 		--11111
-		join (
+		full join (
 		--22222
 		select * from (
 			select monthstat, sum(TT) as TT from (
@@ -109,7 +110,7 @@ select [Data] from
 				) as Prepare2
 				group by monthring
 			---
-			union select case when   1  < month(getdate()) then concat(year(getdate()),'.0',1) else concat(year(getdate()-365),'.0',1)   end ,  0
+			/*union select case when   1  < month(getdate()) then concat(year(getdate()),'.0',1) else concat(year(getdate()-365),'.0',1)   end ,  0
 			union select case when   2  < month(getdate()) then concat(year(getdate()),'.0',2) else concat(year(getdate()-365),'.0',2)   end ,  0
 			union select case when   3  < month(getdate()) then concat(year(getdate()),'.0',3) else concat(year(getdate()-365),'.0',3)   end ,  0
 			union select case when   4  < month(getdate()) then concat(year(getdate()),'.0',4) else concat(year(getdate()-365),'.0',4)   end ,  0
@@ -120,14 +121,14 @@ select [Data] from
 			union select case when   9  < month(getdate()) then concat(year(getdate()),'.0',9) else concat(year(getdate()-365),'.0',9)   end ,  0
 			union select case when   10  < month(getdate()) then concat(year(getdate()),'.',10) else concat(year(getdate()-365),'.',10)   end , 0
 			union select case when   11  < month(getdate()) then concat(year(getdate()),'.',11) else concat(year(getdate()-365),'.',11)   end , 0
-			union select case when   12  < month(getdate()) then concat(year(getdate()),'.',12) else concat(year(getdate()),'.',12)   end , 0
+			union select case when   12  < month(getdate()) then concat(year(getdate()),'.',12) else concat(year(getdate()),'.',12)   end , 0*/
 			)as Temp2
 			group by monthstat
 			) as Result2
 		)as Layer2
 		----22222	
 		on Layer1.monthstat = Layer2.monthstat
-		join (select TOP (12) UserID, monthdate from    
+		full join (select TOP (12) UserID, monthdate from    
 			(select row_number() over (partition by /*UserID,*/  monthdate order by counts desc ) as rang, monthdate, UserID , counts
 				from (
 					select distinct Users.ID as UserID, 
@@ -146,15 +147,27 @@ select [Data] from
 		--order by monthstat
 	--==========================================
 	) as Total
-	unpivot (monthstat for  in (CIM as 'Количество случаев',TT as 'Суммарная длина звонков', UserID as 'Самый общительный')) as unpvt
+	unpivot ( dd for DataForMonth in (CIM,TT, UserID)) as unpvt
 ) UnpivotTable
 pivot 
-(
-	CIM,
-	for monthstat in ([1],[2],[3],[4],[5],[6],[7],[8],[9],[10],[11],[12])
-)as pvt
+(--[concat(YEAR(GETDATE()),'.', MONTH(GETDATE())-8)],
+	avg(dd) for monthstat in (
+	[2021.01],
+	[2021.02],
+	[2021.03],
+	[2021.04],
+	[2021.05],
+	[2021.06],
+	[2021.07],
+	[2021.08],
+	[2021.09],
+	[2021.10],
+	[2021.11],
+	[2021.12])
+) pvt
 
-
+--print concat(YEAR(GETDATE()),'.', MONTH(GETDATE()))
+go
 /*3
 По вертикали: 4 квартала
         По горизонтали: 
@@ -162,10 +175,43 @@ pivot
     * Кол-во засветившихся пользователей
     * Кол-во вложений за квартал
 	*/
+select Layer.QuarterYear, count(IDU) as 'Количество пользователей', sum(Layer.avglen) as 'Средняя длина сообщения' from 
+(
+		select QuarterYear,IDU, NULL as avglen from (
+			select datepart(quarter, TimeSending) as QuarterYear,
+			Users.ID as IDU
+			--,0 as statlen
+			from TextMessage 
+			join Users on Users.ID = TextMessage.IDOwner
+			join Coincedence on Coincedence.IDMessage = TextMessage.ID
+			group by DATEPART(quarter, TextMessage.TimeSending), Users.ID
+		)AS TEMP1
+		group by QuarterYear, idu
+	union		-- JOIN
+		select QuarterYear,NULL as IDU, AVG(statlen) as avglen from (
+			select datepart(quarter, TimeSending) as QuarterYear, 
+			LEN(TextMessage.Txt) as statlen
+			from TextMessage
+			group by DATEPART(quarter, TextMessage.TimeSending), TextMessage.txt
+		)as Temp2
+		group by QuarterYear
+)as Layer
+group by Layer.QuarterYear
 
-	select avg(length(TextMessage.Txt), count(Users.ID), count(Attachment)
-	from TextMessage
+go
+with RecursiveAttachment (ID, IDNext)
+as
+(
+	select id,IDNext
+	from Attachment atch
 	
+	union all
+	select atch.id, atch.IDNext
+	from Attachment atch
+	join RecursiveAttachment rec on atch.id = rec.IDNext
+)
+select id, idnext
+from RecursiveAttachment
 
 go
 /*4
@@ -191,4 +237,4 @@ select top 30  users.ID, count(Coincedence.CountInMessage) as 'Количество засвет
 join TextMessage on TextMessage.IDOwner = Users.ID
 join Coincedence on Coincedence.IDMessage = TextMessage.ID
 group by users.ID
-order by 'Количество засветов' desc
+order by users.ID, 'Количество засветов' desc
