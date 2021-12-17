@@ -19,7 +19,25 @@ end
 
 go
 
-
+create function ListContacts ( @id int)
+returns varchar
+begin
+	DECLARE @str VARCHAR(MAX);
+	select @str = isnull (@str +', ','')+ QUOTENAME(ContactBookExtended.Абонент)
+	from 
+	(
+	SELECT 
+		Users.ID as IDOwner,
+		Users_2.ID as IDContact,
+		'Абонент'=(Users_2.Name +' '+Users_2.Lastname+' '+ISNULL(Users_2.Surname,''))
+		FROM ContactBook
+		JOIN Users				ON ContactBook.IDOwner = Users.ID
+		JOIN Users AS Users_2 ON ContactBook.IDContact = Users_2.ID
+		where IDOwner = @ID
+	) as ContactBookExtended
+	return @str
+end
+go
 
 create procedure Statistic
 As
