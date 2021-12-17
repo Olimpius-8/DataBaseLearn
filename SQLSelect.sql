@@ -199,19 +199,7 @@ select Layer.QuarterYear, count(IDU) as 'Количество пользователей', sum(Layer.av
 group by Layer.QuarterYear
 
 go
-with RecursiveAttachment (ID, IDNext)
-as
-(
-	select id,IDNext
-	from Attachment atch
-	
-	union all
-	select atch.id, atch.IDNext
-	from Attachment atch
-	join RecursiveAttachment rec on atch.id = rec.IDNext
-)
-select id, idnext
-from RecursiveAttachment
+
 
 go
 /*4
