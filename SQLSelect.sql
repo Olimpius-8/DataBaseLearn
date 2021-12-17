@@ -5,7 +5,7 @@ go
 Для каждого пользователя: 
 Телефон, Никнейм, кол-во сообщений, кол-во стоп-слов в сообщениях, ФИО майора, который чаще всего получал совпадений
 */
-select Users.PhoneNumber, 
+select Users.ID,Users.PhoneNumber, 
 Users.Nickname, 
 count(distinct TextMessage.ID) as CountMessages,
 count(distinct MessagesDialog.IDDialog) as CountPersons,
@@ -24,10 +24,15 @@ select row_number() over (partition by IDOwner order by counts desc) as rang, ID
 			join TextMessage on Coincedence.IDMessage = TextMessage.ID
 			group by IDMajor, IDOwner) as Temp
 	) as Result
-where rang = 1) as Counters on Counters.IDOwner = Users.ID
-
-left join ComradeMajor on ComradeMajor.ID = Counters.IDMajor
-group by PhoneNumber, Nickname, 
+where rang = 1) as Majors on Majors.IDOwner = Users.ID
+left join ComradeMajor on ComradeMajor.ID = Majors.IDMajor
+left join (select IDOwner,sum(CountInMessage) as counts 
+from TextMessage 
+join Coincedence on Coincedence.IDMessage = TextMessage.ID
+group by IDOWner
+) as Counters
+on Counters.IDOwner = Users.ID
+group by Users.ID,PhoneNumber, Nickname, 
 ComradeMajor.Name,ComradeMajor.Lastname,ComradeMajor.Surname,
 Counters.counts
 
@@ -52,6 +57,8 @@ from Counters
 where rang = 1 )
 select * from name_1*/
 go
+exec printMajorsDictionary
+go
 /*2
 	По вертикали: 12 месяцев от текущего назад на год
 	По горизонтали:    	
@@ -62,25 +69,25 @@ go
 select * from (
   select * from 
   (
-	--======================================
-	select Layer1.monthstat as monthstat, CIM, TT, UserID from (	
+	--======================================										за месяц всеми
+	select Layer1.monthstat as monthstat, CIM as 'Количество случаев', TT as 'Общее время разговоров', UserID as 'Топ пользователь чата' from (	
 	--111
-		select monthstat,count (CIM) as CIM from --, UserID 	from 
-			(select monthstat, count (CIM) as CIM from 
+		select monthstat, CIM from --, UserID 	from 
+			(select monthstat, sum (CIM) as CIM from 
 				(select 
 				--format month--------------
-					distinct 
+					--distinct 
 					case	when month(TimeSending) >= 10 then concat(year(TimeSending),'.',month(TimeSending)) 
 							else concat(year(TimeSending),'.0',month(TimeSending)) end as monthstat,
-						count(CountInMessage) as CIM
+						count(distinct IDMessage) as CIM   --CountInMessage
 						from  Coincedence
 					left join TextMessage on Coincedence.IDMessage = TextMessage.ID
-					where (TextMessage.TimeSending >= GETDATE() - 365) AND (TextMessage.TimeSending <= GETDATE())
+					where (TextMessage.TimeSending >= (GETDATE() - datepart(dd,GETDATE()))- 365+1) AND (TextMessage.TimeSending <= GETDATE())
 					group by TextMessage.TimeSending
 				)as Temp1
 			group by monthstat 
 			)as Result1
-			group by monthstat
+			--group by monthstat
 		) as Layer1
 		--11111
 		full join (
@@ -117,7 +124,7 @@ select * from (
 		--order by monthstat
 	--==========================================
 	) as Total
-	unpivot ( dd for DataForMonth in (CIM,TT, UserID)) as unpvt
+	unpivot ( dd for DataForMonth in (Total.[Количество случаев],Total.[Общее время разговоров], Total.[Топ пользователь чата])) as unpvt
 ) UnpivotTable
 pivot 
 (--[concat(YEAR(GETDATE()),'.', MONTH(GETDATE())-8)] не робит,
@@ -136,7 +143,6 @@ pivot
 	[2021.12])
 ) pvt
 
---print concat(YEAR(GETDATE()),'.', MONTH(GETDATE()))
 go
 /*3
 По вертикали: 4 квартала
@@ -220,7 +226,7 @@ go
 ФИО, ID, 
 Кол-во найденных слов, Ранг по количеству найденных слов	
 */
-select  ID, FIO  as 'ФИО', counts as 'Количество найденных слов', ROW_NUMBER() over (order by counts desc) as 'Ранг'
+select  ID, FIO  as 'ФИО', counts as 'Количество найденных слов', rank() over (order by counts desc) as 'Ранг'
 from (
 select ComradeMajor.ID, Name+' '+Lastname+' '+Surname as FIO, sum(Coincedence.CountInMessage) as counts
 from ComradeMajor
@@ -253,4 +259,4 @@ group by IDOwner
 ) as Contacts 
 on Contacts.IDOwner = Users.ID
 group by users.ID, ListContact
-order by users.ID, 'Количество засветов' desc
+order by 'Количество засветов' desc,users.ID 
